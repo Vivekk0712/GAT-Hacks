@@ -192,14 +192,15 @@ const IDEPage = () => {
 
   // Auto-save functionality
   useEffect(() => {
-    if (!isSaved) {
+    if (!isSaved && currentFileId) {
       const timer = setTimeout(() => {
+        console.log('🔄 Auto-saving file...', currentFileId)
         handleSave()
       }, 2000) // Auto-save after 2 seconds of inactivity
 
       return () => clearTimeout(timer)
     }
-  }, [code, isSaved])
+  }, [code, isSaved, currentFileId])
 
   // Keyboard shortcut for save (Ctrl+S)
   useEffect(() => {
@@ -215,6 +216,10 @@ const IDEPage = () => {
   }, [code])
 
   const handleSave = async () => {
+    console.log('💾 handleSave called')
+    console.log('   Current file ID:', currentFileId)
+    console.log('   Code length:', code.length)
+
     // Save to localStorage
     localStorage.setItem('mcp-ide-code', code)
     localStorage.setItem('mcp-ide-file', editorState.file_path)
@@ -224,6 +229,7 @@ const IDEPage = () => {
     // Save to database if we have a file ID
     if (currentFileId) {
       try {
+        console.log('📤 Sending PATCH request to database...')
         const response = await fetch(`http://localhost:8000/api/v1/files/files/${currentFileId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -231,13 +237,16 @@ const IDEPage = () => {
         })
 
         if (!response.ok) {
-          console.error('Failed to save to database:', await response.text())
+          const errorText = await response.text()
+          console.error('❌ Failed to save to database:', errorText)
         } else {
-          console.log('✅ File saved to database')
+          console.log('✅ File saved to database successfully')
         }
       } catch (err) {
-        console.error('Failed to save to database:', err)
+        console.error('❌ Failed to save to database:', err)
       }
+    } else {
+      console.warn('⚠️ No currentFileId, skipping database save')
     }
   }
 
@@ -337,6 +346,33 @@ const IDEPage = () => {
   }
 
   const handleRunCode = async () => {
+    console.log('▶️ Run Code clicked')
+
+    // CRITICAL: Save to database BEFORE executing
+    if (currentFileId && !isSaved) {
+      console.log('💾 Saving file before execution...')
+      try {
+        const saveResponse = await fetch(`http://localhost:8000/api/v1/files/files/${currentFileId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: code })
+        })
+
+        if (saveResponse.ok) {
+          console.log('✅ File saved before execution')
+          setIsSaved(true)
+          setLastSaved(new Date())
+        } else {
+          console.error('❌ Failed to save before execution')
+        }
+      } catch (err) {
+        console.error('❌ Error saving before execution:', err)
+      }
+
+      // Wait a bit for database to update
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
     setIsRunning(true)
     setShowOutput(true)
     setOutput('')
@@ -346,6 +382,7 @@ const IDEPage = () => {
     const language = getLanguageFromFile(editorState.file_path)
 
     try {
+      console.log('🚀 Executing code...')
       const response = await fetch('http://localhost:8000/api/v1/executor/run', {
         method: 'POST',
         headers: {
@@ -434,6 +471,7 @@ const IDEPage = () => {
 
   const handleCodeChange = (value: string | undefined) => {
     const newCode = value || ''
+    console.log('✏️ Code changed, length:', newCode.length)
     setCode(newCode)
     setIsSaved(false) // Mark as unsaved when code changes
     setEditorState((prev) => ({

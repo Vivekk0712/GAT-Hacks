@@ -51,7 +51,6 @@ Code:
             if last_execution.get('output'):
                 context += f"✅ Output:\n{last_execution['output']}\n"
             if last_execution.get('error'):
-                # Complete stderr output - may contain multiple errors
                 context += f"❌ Error:\n{last_execution['error']}\n"
             context += f"Executed at: {last_execution.get('timestamp', 'unknown')}\n"
             context += f"{'='*50}\n"

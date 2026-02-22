@@ -60,7 +60,12 @@ async def execute_code(request: ExecuteRequest):
                     # Check if file matches the language
                     file_ext = Path(f['path']).suffix
                     if file_ext in valid_extensions:
-                        files_dict[f['path']] = f['content']
+                        # CRITICAL: Use code from request for the current file
+                        # This ensures we use the latest code, not stale database content
+                        if f['path'] == request.file_path:
+                            files_dict[f['path']] = request.code
+                        else:
+                            files_dict[f['path']] = f['content']
             
             print(f"Found {len(files_dict)} {request.language} files to bundle")
             
@@ -143,10 +148,9 @@ def _run_javascript(code: str, stdin: str) -> dict:
             encoding='utf-8',
             errors='replace'  # Replace encoding errors
         )
-        # Return full stderr - don't truncate or filter
         return {
             "output": result.stdout,
-            "error": result.stderr,  # Complete stderr output with all errors
+            "error": result.stderr,
             "exit_code": result.returncode
         }
     except subprocess.TimeoutExpired:
@@ -183,10 +187,9 @@ def _run_python(code: str, stdin: str) -> dict:
             encoding='utf-8',
             errors='replace'  # Replace encoding errors
         )
-        # Return full stderr - don't truncate or filter
         return {
             "output": result.stdout,
-            "error": result.stderr,  # Complete stderr output with all errors
+            "error": result.stderr,
             "exit_code": result.returncode
         }
     except subprocess.TimeoutExpired:
