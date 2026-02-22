@@ -27,34 +27,34 @@ const CodeSandbox = () => {
         animate={{ opacity: 1, y: 0 }}
         className="h-full flex flex-col bg-card border border-border rounded-xl overflow-hidden"
       >
-        {/* Header with controls */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/50">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+        {/* Header with controls - Compact */}
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-secondary/50">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-red-500"></div>
+              <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
             </div>
-            <span className="text-sm font-medium text-foreground">MCP-IDE - Code Sandbox</span>
+            <span className="text-xs font-medium text-foreground">MCP-IDE - Code Sandbox</span>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <button
               onClick={openInNewTab}
-              className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+              className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
               title="Open in new tab"
             >
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={toggleFullscreen}
-              className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+              className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
               title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
             >
               {isFullscreen ? (
-                <Minimize2 className="w-4 h-4" />
+                <Minimize2 className="w-3.5 h-3.5" />
               ) : (
-                <Maximize2 className="w-4 h-4" />
+                <Maximize2 className="w-3.5 h-3.5" />
               )}
             </button>
           </div>
@@ -78,16 +78,16 @@ const CodeSandbox = () => {
           </div>
         </div>
 
-        {/* Status bar */}
-        <div className="px-4 py-2 border-t border-border bg-secondary/30 flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+        {/* Status bar - Compact */}
+        <div className="px-3 py-1 border-t border-border bg-secondary/30 flex items-center justify-between text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
               Connected to MCP-IDE
             </span>
             <span>Port: 5174</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span>AI Tutor: Enabled</span>
             <span>Multi-file: Supported</span>
           </div>
