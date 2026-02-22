@@ -1,6 +1,39 @@
 # AdaptEd - Adaptive Learning Platform
 
-> An AI-powered personalized learning platform with voice-based examinations, interactive coding environment, and adaptive roadmaps.
+<div align="center">
+  <h3>🎓 Personalized Learning • 🤖 AI-Powered • 💻 Hands-on Coding</h3>
+  <p>An intelligent learning platform that adapts to your pace and learning style</p>
+</div>
+
+---
+
+## 📸 Screenshots
+
+### Dashboard - Learning Progress Overview
+![Dashboard](DASHBOARD.png)
+*Track your learning progress, streaks, XP, and upcoming modules*
+
+### AI-Generated Lessons with Multi-Source Citations
+![Citations](CITATIONS.png)
+*Lessons synthesized from multiple sources with Perplexity-style attribution*
+
+### Comprehensive Study Notes
+![Notes](NOTES.png)
+*AI-generated study notes with key takeaways and practice exercises*
+
+### MCP-IDE - Integrated Development Environment
+![MCP-IDE](MCP-IDE.png)
+*Full-featured code editor with AI tutor, multi-file support, and real-time execution*
+
+### Viva Voice - Voice-Based Examinations
+![Viva Voice](VIVA-VOICE.png)
+*Interactive voice assessments with speech-to-text and AI evaluation*
+
+### Dyslexia-Friendly Mode
+![Dyslexia Mode](DYSLEXIA_TEST_PAGE.png)
+*Chrome extension providing accessible reading experience with OpenDyslexic font*
+
+---
 
 ## 🌟 Overview
 
