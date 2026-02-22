@@ -12,6 +12,7 @@ import LearningPath from "./pages/LearningPath";
 import LessonView from "./pages/LessonView";
 import CodeSandbox from "./pages/CodeSandbox";
 import Viva from "./pages/Viva";
+import VivaSelection from "./pages/VivaSelection";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -85,6 +86,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <MainLayout><CodeSandbox /></MainLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/viva" 
+            element={
+              <ProtectedRoute>
+                <MainLayout><VivaSelection /></MainLayout>
               </ProtectedRoute>
             } 
           />

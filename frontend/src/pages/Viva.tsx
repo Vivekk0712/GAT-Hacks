@@ -55,7 +55,8 @@ const Viva = () => {
         ...(userGoal && { user_goal: userGoal })
       });
       
-      const response = await fetch(`http://localhost:8000/viva/start-simple?${params}`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+      const response = await fetch(`${API_URL}/viva/start-simple?${params}`, {
         method: 'POST',
       });
       
@@ -114,7 +115,8 @@ const Viva = () => {
       
       console.log(`[VIVA] Calling /viva/complete with userId: ${userId}, module: ${moduleTitleParam}, score: ${score}`);
       
-      const response = await fetch('http://localhost:8000/viva/complete', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+      const response = await fetch(`${API_URL}/viva/complete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

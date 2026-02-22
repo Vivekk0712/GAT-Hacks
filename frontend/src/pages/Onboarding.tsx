@@ -60,8 +60,9 @@ const Onboarding = () => {
   ];
 
   const popularSkills = [
-    "Python", "JavaScript", "Git", "Docker", "Linux", "SQL",
-    "React", "Node.js", "AWS", "Kubernetes", "CI/CD", "REST APIs"
+    "HTML", "CSS", "JavaScript", "Python", "Git", "Docker", 
+    "Linux", "SQL", "React", "Node.js", "AWS", "Kubernetes", 
+    "CI/CD", "REST APIs"
   ];
 
   // Update form data

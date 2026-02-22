@@ -6,7 +6,6 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ProgressDonut } from "@/components/dashboard/ProgressDonut";
 import { WeeklyChart } from "@/components/dashboard/WeeklyChart";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-import { Scene3D } from "@/components/dashboard/Scene3D";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -59,7 +58,8 @@ const Dashboard = () => {
       }
       
       try {
-        const response = await fetch(`http://localhost:8000/users/${currentUser.uid}/stats`);
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+        const response = await fetch(`${API_URL}/users/${currentUser.uid}/stats`);
         if (!response.ok) {
           console.warn('Failed to fetch stats from backend, using localStorage');
           // Fall back to localStorage if backend fails
@@ -107,20 +107,27 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6 relative">
-      {/* Hero Welcome Section with 3D background */}
+      {/* Hero Welcome Section with dark bluish gradient */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl gradient-primary p-8 text-primary-foreground"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-8 text-white shadow-xl"
       >
-        <Scene3D />
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+            backgroundSize: '32px 32px'
+          }} />
+        </div>
+        
         <div className="relative z-10">
           <h1 className="text-2xl font-bold mb-1">Welcome back, {userName} 👋</h1>
-          <p className="text-primary-foreground/80 text-sm">
+          <p className="text-white/80 text-sm">
             You're on module {completedModules + 1} of {totalModules} — keep going!
           </p>
           {currentModule && (
-            <div className="mt-4 inline-flex items-center gap-2 bg-primary-foreground/15 backdrop-blur-sm rounded-lg px-4 py-2 text-sm font-medium">
+            <div className="mt-4 inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-lg px-4 py-2 text-sm font-medium">
               <BookOpen className="w-4 h-4" />
               Currently studying: {currentModule.title}
             </div>
