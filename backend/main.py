@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from models import (
-    UserProfile, Roadmap, LessonRequest, Lesson, LessonContent, StudyNotes, UserStatus,
+    UserProfile, Roadmap, LessonRequest, LessonRequestWithTranscript, Lesson, LessonContent, StudyNotes, UserStatus,
     VivaSession, VivaStartRequest, VivaStartResponse, VivaInteractRequest, VivaInteractResponse,
     VivaStatus, VivaMessage, VivaInteraction, VivaResponse, VivaCompleteRequest, VivaCompleteResponse
 )
@@ -235,22 +235,105 @@ def generate_lesson(request: LessonRequest):
         )
 
 
+@app.get("/search-youtube")
+async def search_youtube(query: str):
+    """
+    Search for YouTube videos and return metadata (URLs, titles, etc.)
+    Does NOT fetch transcripts - that's done on the frontend to avoid IP blocking.
+    
+    Args:
+        query: Search query
+        
+    Returns:
+        List of video metadata
+    """
+    try:
+        print(f"Searching YouTube for: {query}", file=sys.stderr, flush=True)
+        video_list = search_youtube_video(query, max_results=5)
+        
+        if not video_list:
+            return []
+        
+        print(f"Found {len(video_list)} videos", file=sys.stderr, flush=True)
+        return video_list
+        
+    except Exception as e:
+        print(f"Error searching YouTube: {e}", file=sys.stderr, flush=True)
+        return []
+
+
+@app.get("/fetch-transcript/{video_id}")
+async def fetch_transcript_proxy(video_id: str):
+    """
+    Proxy endpoint to fetch YouTube transcript.
+    This helps bypass CORS issues in the frontend.
+    
+    Args:
+        video_id: YouTube video ID
+        
+    Returns:
+        Transcript text or error
+    """
+    try:
+        print(f"Fetching transcript for video: {video_id}", file=sys.stderr, flush=True)
+        
+        # Use the backend transcript fetcher
+        from youtube_transcript_api import YouTubeTranscriptApi
+        
+        # Try multiple language codes
+        language_codes = ['en', 'hi', 'es', 'fr', 'de', 'pt', 'ja', 'ko']
+        
+        try:
+            transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=language_codes)
+            
+            # Combine all transcript segments
+            full_transcript = " ".join([segment['text'] for segment in transcript_list])
+            full_transcript = full_transcript.replace('\n', ' ').strip()
+            
+            # Limit to 15,000 characters
+            if len(full_transcript) > 15000:
+                full_transcript = full_transcript[:15000]
+            
+            print(f"✓ Transcript fetched: {len(full_transcript)} chars", file=sys.stderr, flush=True)
+            
+            return {
+                "success": True,
+                "text": full_transcript,
+                "video_id": video_id
+            }
+            
+        except Exception as e:
+            print(f"✗ Transcript fetch failed: {e}", file=sys.stderr, flush=True)
+            return {
+                "success": False,
+                "error": str(e),
+                "video_id": video_id
+            }
+        
+    except Exception as e:
+        print(f"Error in transcript proxy: {e}", file=sys.stderr, flush=True)
+        return {
+            "success": False,
+            "error": str(e),
+            "video_id": video_id
+        }
+
+
 @app.post("/generate-lesson-content", response_model=LessonContent)
-async def generate_lesson_content(request: LessonRequest):
+async def generate_lesson_content(request: LessonRequestWithTranscript):
     """
     Generate a comprehensive micro-lesson with multi-source attribution (Perplexity-style).
     
     This endpoint:
-    1. Searches for relevant YouTube tutorial videos
+    1. Accepts pre-fetched video transcript from frontend (to avoid IP blocking)
     2. Searches for official documentation pages
-    3. Extracts content from both sources
-    4. Uses ContentRefineryAgent to synthesize structured lesson
-    5. Attributes concepts to specific sources
-    6. Adapts content based on user preference (visual/text learner)
-    7. Falls back to AI-generated content if no sources found
+    3. Uses ContentRefineryAgent to synthesize structured lesson
+    4. Attributes concepts to specific sources
+    5. Adapts content based on user preference (visual/text learner)
+    6. Falls back to AI-generated content if no sources found
     
     Args:
-        request: LessonRequest with topic and user_preference
+        request: LessonRequestWithTranscript with topic, user_preference, and optional video_transcript
         
     Returns:
         LessonContent: Structured lesson with multi-source attribution
@@ -261,16 +344,39 @@ async def generate_lesson_content(request: LessonRequest):
         # Step 1: Collect content from multiple sources
         content_results = []
         
-        # Search for YouTube video
-        print(f"Searching for YouTube video...", file=sys.stderr, flush=True)
-        video_query = f"{request.topic} tutorial for beginners"
-        video_result = get_video_content(video_query)
-        
-        if video_result:
+        # Use pre-fetched video transcript from frontend if available
+        if request.video_transcript:
+            print(f"Using pre-fetched video transcript from frontend", file=sys.stderr, flush=True)
+            
+            # Get video metadata from YouTube API
+            video_list = search_youtube_video(request.topic, max_results=1)
+            video_metadata = video_list[0] if video_list else None
+            
+            # Create ContentResult from frontend transcript
+            from tools import ContentResult
+            video_result = ContentResult(
+                text=request.video_transcript.text,
+                url=request.video_transcript.url,
+                title=video_metadata['title'] if video_metadata else f"YouTube Video: {request.topic}",
+                source_type="video",
+                metadata={
+                    'channel': video_metadata['channel'] if video_metadata else 'YouTube',
+                    'views': video_metadata['views'] if video_metadata else 'N/A'
+                }
+            )
             content_results.append(video_result)
-            print(f"Found video: {video_result.title}", file=sys.stderr, flush=True)
+            print(f"✓ Video transcript added: {len(request.video_transcript.text)} chars", file=sys.stderr, flush=True)
         else:
-            print("No video found", file=sys.stderr, flush=True)
+            # Fallback: Try to fetch video content from backend (may fail due to IP blocking)
+            print(f"No pre-fetched transcript, trying backend fetch...", file=sys.stderr, flush=True)
+            video_query = f"{request.topic} tutorial for beginners"
+            video_result = get_video_content(video_query)
+            
+            if video_result:
+                content_results.append(video_result)
+                print(f"Found video: {video_result.title}", file=sys.stderr, flush=True)
+            else:
+                print("No video found from backend", file=sys.stderr, flush=True)
         
         # Search for documentation
         print(f"Searching for documentation...", file=sys.stderr, flush=True)

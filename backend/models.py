@@ -64,6 +64,23 @@ class LessonRequest(BaseModel):
     user_preference: str  # e.g., "visual learner", "text learner"
 
 
+class VideoTranscriptData(BaseModel):
+    """Video transcript data sent from frontend."""
+    text: str = Field(description="The transcript text")
+    url: str = Field(description="YouTube video URL")
+    video_id: str = Field(description="YouTube video ID")
+
+
+class LessonRequestWithTranscript(BaseModel):
+    """Lesson request with pre-fetched transcript from frontend."""
+    topic: str
+    user_preference: str
+    video_transcript: Optional[VideoTranscriptData] = Field(
+        default=None,
+        description="Pre-fetched video transcript from frontend"
+    )
+
+
 # Simplified Viva Models (Text-only)
 class VivaInteraction(BaseModel):
     """Request model for text-based viva interaction."""
